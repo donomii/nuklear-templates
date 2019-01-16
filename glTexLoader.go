@@ -3,6 +3,7 @@ package nktemplates
 // From "github.com/cstegel/opengl-samples-golang/colors/gfx"
 
 import (
+	"bytes"
 	"errors"
 	"image"
 	"image/draw"
@@ -33,6 +34,17 @@ func NewTextureFromFile(file string, wrapR, wrapS int32) (*Texture, error) {
 
 	// Decode detexts the type of image as long as its image/<type> is imported
 	img, _, err := image.Decode(imgFile)
+	if err != nil {
+		return nil, err
+	}
+	return NewTexture(img, wrapR, wrapS)
+}
+
+func NewTextureFromData(data []uint8, wrapR, wrapS int32) (*Texture, error) {
+	i := bytes.NewReader(data)
+	//defer i.Close()
+	// Decode detexts the type of image as long as its image/<type> is imported
+	img, _, err := image.Decode(i)
 	if err != nil {
 		return nil, err
 	}

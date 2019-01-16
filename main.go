@@ -96,14 +96,14 @@ func LeftCol(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2,
 		log.Println("here")
 
 		nk.NkLayoutRowPush(ctx, 200)
-		nk.NkGroupBegin(ctx, "Group 1", nk.WindowBorder)
-		pane1()
-		nk.NkGroupEnd(ctx)
+		//nk.NkGroupBegin(ctx, "Group 1", nk.WindowBorder)
+		//pane1()
+		//nk.NkGroupEnd(ctx)
 
 		nk.NkLayoutRowPush(ctx, 400)
-		nk.NkGroupBegin(ctx, "Group 2", nk.WindowBorder)
-		pane2()
-		nk.NkLayoutRowEnd(ctx)
+		//nk.NkGroupBegin(ctx, "Group 2", nk.WindowBorder)
+		//pane2()
+		//nk.NkLayoutRowEnd(ctx)
 
 	}
 	nk.NkEnd(ctx)
@@ -117,6 +117,13 @@ func LeftCol(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2,
 	gl.ClearColor(bg[0], bg[1], bg[2], bg[3])
 	nk.NkPlatformRender(nk.AntiAliasingOn, maxVertexBuffer, maxElementBuffer)
 	win.SwapBuffers()
+}
+
+func LoadImageFile(filename string, x, y int) nk.Image {
+	log.Println("Loading Image")
+	h, err := NewTextureFromFile(filename, 480, 480)
+	log.Println("Image loaded:", h.Handle, err)
+	return nk.NkImageId(int32(h.Handle))
 }
 
 //3 pane layout - two small panes on the top, a large box below for displaying the contents of emails
@@ -215,6 +222,51 @@ func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1
 		//h, _ := gfx.NewTextureFromFile("test.png", 480, 480)
 		//log.Println("Image loaded:", h.Handle)
 		menu1()
+		pane1()
+
+		pane2()
+
+	}
+	nk.NkEnd(ctx)
+
+	// Render
+	bg := make([]float32, 4)
+	//nk.NkColorFv(bg, state.bgColor)
+	width, height := win.GetSize()
+	gl.Viewport(0, 0, int32(width), int32(height))
+	gl.Clear(gl.COLOR_BUFFER_BIT)
+	gl.ClearColor(bg[0], bg[1], bg[2], bg[3])
+	nk.NkPlatformRender(nk.AntiAliasingOn, maxVertexBuffer, maxElementBuffer)
+	win.SwapBuffers()
+}
+
+func TwoPanelStacked(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2 func()) {
+	//log.Println("Redraw")
+	maxVertexBuffer := 512 * 1024
+	maxElementBuffer := 128 * 1024
+
+	nk.NkPlatformNewFrame()
+
+	// Layout
+	bounds := nk.NkRect(50, 50, 230, 250)
+	update := nk.NkBegin(ctx, "GitRemind", bounds,
+		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
+	update = 1
+	nk.NkWindowSetPosition(ctx, "GitRemind", nk.NkVec2(0, 0))
+	nk.NkWindowSetSize(ctx, "GitRemind", nk.NkVec2(float32(winWidth), float32(winHeight)))
+
+	if update > 0 {
+
+		/*withGlctx(func() {
+			pic, w, h := glim.LoadImage("test.png")
+			log.Println("Loaded image")
+			testim = load_nk_image(pic, w, h)
+			log.Println("Uploaded image")
+		})*/
+		//log.Println("Loading Image")
+		//h, _ := gfx.NewTextureFromFile("test.png", 480, 480)
+		//log.Println("Image loaded:", h.Handle)
+
 		pane1()
 
 		pane2()
