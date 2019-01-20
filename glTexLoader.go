@@ -3,13 +3,16 @@ package nktemplates
 // From "github.com/cstegel/opengl-samples-golang/colors/gfx"
 
 import (
-	"bytes"
 	"errors"
 	"image"
 	"image/draw"
 	_ "image/jpeg"
-	_ "image/png"
-	"log"
+	"image/png"
+	"io"
+
+	"github.com/donomii/glim"
+
+	//"log"
 	"os"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
@@ -37,23 +40,25 @@ func NewTextureFromFile(file string, wrapR, wrapS int32) (*Texture, error) {
 	if err != nil {
 		return nil, err
 	}
-	return NewTexture(img, wrapR, wrapS)
+	return NewGarbageTexture(img, wrapR, wrapS)
 }
 
-func NewTextureFromData(data []uint8, wrapR, wrapS int32) (*Texture, error) {
-	i := bytes.NewReader(data)
-	//defer i.Close()
-	// Decode detexts the type of image as long as its image/<type> is imported
-	img, _, err := image.Decode(i)
+func NewTextureFromData(data []uint8, width, height int32) (*Texture, error) {
+	imgin := glim.ImageToGFormat(int(width), int(height), data)
+	reader, writer := io.Pipe()
+	defer reader.Close()
+	defer writer.Close()
+	go png.Encode(writer, imgin)
+	img, _, err := image.Decode(reader)
 	if err != nil {
 		return nil, err
 	}
-	return NewTexture(img, wrapR, wrapS)
+	return NewGarbageTexture(img, width, height)
 }
 
-func NewTexture(img image.Image, wrapR, wrapS int32) (*Texture, error) {
+func NewGarbageTexture(img image.Image, wrapR, wrapS int32) (*Texture, error) {
 	rgba := image.NewRGBA(img.Bounds())
-	log.Printf("Image size: %+v\n", img.Bounds())
+	//log.Printf("Image size: %+v\n", img.Bounds())
 	draw.Draw(rgba, rgba.Bounds(), img, image.Pt(0, 0), draw.Src)
 	if rgba.Stride != rgba.Rect.Size().X*4 { // TODO-cs: why?
 		return nil, errUnsupportedStride
@@ -90,6 +95,47 @@ func NewTexture(img image.Image, wrapR, wrapS int32) (*Texture, error) {
 	gl.GenerateMipmap(texture.Handle)
 
 	return &texture, nil
+}
+
+func RawTexture(data []byte, wrapR, wrapS int32, texture *Texture) (*Texture, error) {
+
+	var handle uint32
+
+	target := uint32(gl.TEXTURE_2D)
+	internalFmt := int32(gl.RGBA)
+	format := uint32(gl.RGBA)
+	width := wrapR
+	height := wrapS
+	pixType := uint32(gl.UNSIGNED_BYTE)
+	dataPtr := gl.Ptr(data)
+
+	if texture == nil {
+		gl.GenTextures(1, &handle)
+		texture = &Texture{
+			Handle: handle,
+			target: target,
+		}
+	} else {
+		handle = texture.Handle
+	}
+
+	texture.Bind(gl.TEXTURE0)
+	defer texture.UnBind()
+
+	// set the texture wrapping/filtering options (applies to current bound texture obj)
+	// TODO-cs
+	gl.TexParameteri(texture.target, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(texture.target, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(texture.target, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+	gl.TexParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR) // minification filter
+	gl.TexParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR) // magnification filter
+
+	gl.TexImage2D(target, 0, internalFmt, width, height, 0, format, pixType, dataPtr)
+	dataPtr = nil
+
+	gl.GenerateMipmap(texture.Handle)
+
+	return texture, nil
 }
 
 func (tex *Texture) Bind(texUnit uint32) {

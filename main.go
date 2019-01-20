@@ -1,7 +1,7 @@
 package nktemplates
 
 import (
-	"log"
+	//"log"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
 	"github.com/go-gl/glfw/v3.2/glfw"
@@ -18,7 +18,7 @@ var winHeight int = 600
 //You don't have to use this, you can initialise nuklear by yourself and just use the templates
 func StartNuke() (*glfw.Window, *nk.Context) {
 
-	log.Println("Starting nuke")
+	//log.Println("Starting nuke")
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 2)
 	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
@@ -30,7 +30,7 @@ func StartNuke() (*glfw.Window, *nk.Context) {
 	win.MakeContextCurrent()
 
 	width, height := win.GetSize()
-	log.Printf("glfw: created window %dx%d", width, height)
+	//log.Printf("glfw: created window %dx%d", width, height)
 
 	if err := gl.Init(); err != nil {
 		closer.Fatalln("opengl: init failed:", err)
@@ -63,22 +63,22 @@ func StartNuke() (*glfw.Window, *nk.Context) {
 	/*
 		withGlctx(func() {
 			pic, w, h := glim.LoadImage("test.png")
-			log.Println("Loaded image")
+			//log.Println("Loaded image")
 			testim = load_nk_image(pic, w, h)
 			//var ti C.struct_nk_image = *(*C.struct_nk_image)(unsafe.Pointer(&testim))
 			//var ti Image = Image(testim)
 			//ti.w = 480
-			log.Println("Uploaded image")
+			//log.Println("Uploaded image")
 		})
 	*/
-	log.Println("Initialised gui")
+	//log.Println("Initialised gui")
 
 	//End Nuklear
 	return win, ctx
 }
 
 func LeftCol(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2, pane3 func()) {
-	//log.Println("Redraw")
+	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
 
@@ -93,7 +93,7 @@ func LeftCol(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2,
 
 	if update > 0 {
 		nk.NkLayoutRowBegin(ctx, nk.Dynamic, 400, 2)
-		log.Println("here")
+		//log.Println("here")
 
 		nk.NkLayoutRowPush(ctx, 200)
 		//nk.NkGroupBegin(ctx, "Group 1", nk.WindowBorder)
@@ -119,10 +119,24 @@ func LeftCol(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2,
 	win.SwapBuffers()
 }
 
-func LoadImageFile(filename string, x, y int) nk.Image {
-	log.Println("Loading Image")
+func LoadImageFile(filename string, x, y int) (*nk.Image, error) {
+	//log.Println("Loading Image")
 	h, err := NewTextureFromFile(filename, 480, 480)
-	log.Println("Image loaded:", h.Handle, err)
+	if err != nil {
+		return nil, err
+	}
+	//log.Println("Image loaded:", h.Handle, err)
+	n := nk.NkImageId(int32(h.Handle))
+	return &n, nil
+}
+
+func LoadImageData(data []uint8, x, y int) nk.Image {
+	//log.Println("Loading Image")
+	h, err := NewTextureFromData([]byte(data), 480, 480)
+	if err != nil {
+		panic(err)
+	}
+	//log.Println("Image loaded:", h.Handle, err)
 	return nk.NkImageId(int32(h.Handle))
 }
 
@@ -130,7 +144,7 @@ func LoadImageFile(filename string, x, y int) nk.Image {
 //
 //You provide the contents of panes 1, 2, and 3 as callback functions that take no args and return no values
 func ClassicEmail3Pane(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2, pane3 func()) {
-	//log.Println("Redraw")
+	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
 
@@ -196,7 +210,7 @@ func ButtonBar(ctx *nk.Context, buttons []string, callback func(i int, s string)
 
 //The Ratatosk layout
 func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1, pane2 func()) {
-	//log.Println("Redraw")
+	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
 
@@ -205,8 +219,8 @@ func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1
 	// Layout
 	bounds := nk.NkRect(50, 50, 230, 250)
 	update := nk.NkBegin(ctx, "GitRemind", bounds,
-		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
-	update = 1
+		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable)
+
 	nk.NkWindowSetPosition(ctx, "GitRemind", nk.NkVec2(0, 0))
 	nk.NkWindowSetSize(ctx, "GitRemind", nk.NkVec2(float32(winWidth), float32(winHeight)))
 
@@ -214,13 +228,13 @@ func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1
 
 		/*withGlctx(func() {
 			pic, w, h := glim.LoadImage("test.png")
-			log.Println("Loaded image")
+			//log.Println("Loaded image")
 			testim = load_nk_image(pic, w, h)
-			log.Println("Uploaded image")
+			//log.Println("Uploaded image")
 		})*/
-		//log.Println("Loading Image")
+		////log.Println("Loading Image")
 		//h, _ := gfx.NewTextureFromFile("test.png", 480, 480)
-		//log.Println("Image loaded:", h.Handle)
+		////log.Println("Image loaded:", h.Handle)
 		menu1()
 		pane1()
 
@@ -241,7 +255,7 @@ func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1
 }
 
 func TwoPanelStacked(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2 func()) {
-	//log.Println("Redraw")
+	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
 
@@ -259,13 +273,13 @@ func TwoPanelStacked(win *glfw.Window, ctx *nk.Context, state interface{}, pane1
 
 		/*withGlctx(func() {
 			pic, w, h := glim.LoadImage("test.png")
-			log.Println("Loaded image")
+			//log.Println("Loaded image")
 			testim = load_nk_image(pic, w, h)
-			log.Println("Uploaded image")
+			//log.Println("Uploaded image")
 		})*/
-		//log.Println("Loading Image")
+		////log.Println("Loading Image")
 		//h, _ := gfx.NewTextureFromFile("test.png", 480, 480)
-		//log.Println("Image loaded:", h.Handle)
+		////log.Println("Image loaded:", h.Handle)
 
 		pane1()
 
