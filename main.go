@@ -17,7 +17,9 @@ var winHeight int = 600
 //
 //You don't have to use this, you can initialise nuklear by yourself and just use the templates
 func StartNuke() (*glfw.Window, *nk.Context) {
-
+	if err := glfw.Init(); err != nil {
+		closer.Fatalln(err)
+	}
 	//log.Println("Starting nuke")
 	glfw.WindowHint(glfw.ContextVersionMajor, 3)
 	glfw.WindowHint(glfw.ContextVersionMinor, 2)
@@ -258,16 +260,17 @@ func TwoPanelStacked(win *glfw.Window, ctx *nk.Context, state interface{}, pane1
 	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
+	windowName := "TemplateWin"
 
 	nk.NkPlatformNewFrame()
 
 	// Layout
-	bounds := nk.NkRect(50, 50, 230, 250)
-	update := nk.NkBegin(ctx, "GitRemind", bounds,
-		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
-	update = 1
-	nk.NkWindowSetPosition(ctx, "GitRemind", nk.NkVec2(0, 0))
-	nk.NkWindowSetSize(ctx, "GitRemind", nk.NkVec2(float32(winWidth), float32(winHeight)))
+	bounds := nk.NkRect(0, 0, float32(winWidth), float32(winHeight))
+	update := nk.NkBegin(ctx, windowName, bounds,
+		nk.WindowBorder|nk.WindowMinimizable|nk.WindowTitle)
+
+	nk.NkWindowSetPosition(ctx, windowName, nk.NkVec2(0, 0))
+	nk.NkWindowSetSize(ctx, windowName, nk.NkVec2(float32(winWidth), float32(winHeight)))
 
 	if update > 0 {
 
