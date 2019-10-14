@@ -12,7 +12,7 @@ import (
 
 	"github.com/donomii/glim"
 
-	//"log"
+	"log"
 	"os"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
@@ -98,7 +98,7 @@ func NewGarbageTexture(img image.Image, wrapR, wrapS int32) (*Texture, error) {
 }
 
 func RawTexture(data []byte, wrapR, wrapS int32, texture *Texture) (*Texture, error) {
-
+	log.Println("Raw texture")
 	var handle uint32
 
 	target := uint32(gl.TEXTURE_2D)
@@ -134,7 +134,7 @@ func RawTexture(data []byte, wrapR, wrapS int32, texture *Texture) (*Texture, er
 	dataPtr = nil
 
 	gl.GenerateMipmap(texture.Handle)
-
+	log.Println("Finished texture")
 	return texture, nil
 }
 
