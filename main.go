@@ -145,7 +145,7 @@ func LoadImageData(data []uint8, x, y int) nk.Image {
 //3 pane layout - two small panes on the top, a large box below for displaying the contents of emails
 //
 //You provide the contents of panes 1, 2, and 3 as callback functions that take no args and return no values
-func ClassicEmail3Pane(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2, pane3 func()) {
+func ClassicEmail3Pane(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2, pane3 func(ctx *nk.Context)) {
 	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
@@ -160,8 +160,20 @@ func ClassicEmail3Pane(win *glfw.Window, ctx *nk.Context, state interface{}, pan
 	nk.NkWindowSetSize(ctx, "GitRemind", nk.NkVec2(float32(winWidth), float32(winHeight)))
 
 	if update > 0 {
+		var atlas *nk.FontAtlas
+		atlas = nk.NewFontAtlas()
+		nk.NkFontStashBegin(&atlas)
+		/*data, err := ioutil.ReadFile("FreeSans.ttf")
+		if err != nil {
+			panic("Could not find file")
+		}*/
+
+		fontSmall := nk.NkFontAtlasAddFromBytes(atlas, goregular.TTF, 16, nil)
+		// sansFont := nk.NkFontAtlasAddDefault(atlas, 16, nil)
+		nk.NkFontStashEnd()
+		nk.NkStyleSetFont(ctx, fontSmall.Handle())
 		ButtonBox(ctx, pane1, pane2)
-		pane3()
+		pane3(ctx)
 	}
 	nk.NkEnd(ctx)
 
@@ -176,14 +188,14 @@ func ClassicEmail3Pane(win *glfw.Window, ctx *nk.Context, state interface{}, pan
 	win.SwapBuffers()
 }
 
-func ButtonBox(ctx *nk.Context, pane1, pane2 func()) {
+func ButtonBox(ctx *nk.Context, pane1, pane2 func(ctx *nk.Context)) {
 
 	nk.NkLayoutRowDynamic(ctx, 400, 2)
 	{
 		nk.NkGroupBegin(ctx, "Group 1", nk.WindowBorder)
 		nk.NkLayoutRowDynamic(ctx, 20, 1)
 		{
-			pane1()
+			pane1(ctx)
 		}
 		nk.NkGroupEnd(ctx)
 
@@ -192,7 +204,7 @@ func ButtonBox(ctx *nk.Context, pane1, pane2 func()) {
 		nk.NkLayoutRowDynamic(ctx, 10, 1)
 		{
 
-			pane2()
+			pane2(ctx)
 		}
 		nk.NkGroupEnd(ctx)
 	}
@@ -211,7 +223,7 @@ func ButtonBar(ctx *nk.Context, buttons []string, callback func(i int, s string)
 }
 
 //The Ratatosk layout
-func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1, pane2 func()) {
+func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1, pane2 func(ctx *nk.Context)) {
 	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
@@ -237,10 +249,10 @@ func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1
 		////log.Println("Loading Image")
 		//h, _ := gfx.NewTextureFromFile("test.png", 480, 480)
 		////log.Println("Image loaded:", h.Handle)
-		menu1()
-		pane1()
+		menu1(ctx)
+		pane1(ctx)
 
-		pane2()
+		pane2(ctx)
 
 	}
 	nk.NkEnd(ctx)
@@ -256,7 +268,7 @@ func TkRatWin(win *glfw.Window, ctx *nk.Context, state interface{}, menu1, pane1
 	win.SwapBuffers()
 }
 
-func TwoPanelStacked(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2 func()) {
+func TwoPanelStacked(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2 func(ctx *nk.Context)) {
 	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
@@ -284,9 +296,9 @@ func TwoPanelStacked(win *glfw.Window, ctx *nk.Context, state interface{}, pane1
 		//h, _ := gfx.NewTextureFromFile("test.png", 480, 480)
 		////log.Println("Image loaded:", h.Handle)
 
-		pane1()
+		pane1(ctx)
 
-		pane2()
+		pane2(ctx)
 
 	}
 	nk.NkEnd(ctx)
