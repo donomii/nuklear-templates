@@ -12,11 +12,15 @@ import (
 
 var winWidth int = 800
 var winHeight int = 600
+var atlas *nk.FontAtlas
+var sansFont *nk.Font
+var exitC, doneC chan struct{}
+var fontSmall *nk.Font
 
 // Start nuklear
 //
 //You don't have to use this, you can initialise nuklear by yourself and just use the templates
-func StartNuke() (*glfw.Window, *nk.Context) {
+func StartNuke() (*glfw.Window, *nk.Context, chan struct{}, chan struct{}) {
 	if err := glfw.Init(); err != nil {
 		closer.Fatalln(err)
 	}
@@ -41,22 +45,18 @@ func StartNuke() (*glfw.Window, *nk.Context) {
 
 	ctx := nk.NkPlatformInit(win, nk.PlatformInstallCallbacks)
 
-	atlas := nk.NewFontAtlas()
+	atlas = nk.NewFontAtlas()
 	nk.NkFontStashBegin(&atlas)
-	/*data, err := ioutil.ReadFile("FreeSans.ttf")
-	if err != nil {
-		panic("Could not find file")
-	}*/
-
-	sansFont := nk.NkFontAtlasAddFromBytes(atlas, goregular.TTF, 16, nil)
-	// sansFont := nk.NkFontAtlasAddDefault(atlas, 16, nil)
+	sansFont = nk.NkFontAtlasAddFromBytes(atlas, goregular.TTF, 16, nil)
+	fontSmall = nk.NkFontAtlasAddFromBytes(atlas, goregular.TTF, 16, nil)
 	nk.NkFontStashEnd()
 	if sansFont != nil {
 		nk.NkStyleSetFont(ctx, sansFont.Handle())
+	} else {
+		panic("Font load failed")
 	}
-
-	exitC := make(chan struct{}, 1)
-	doneC := make(chan struct{}, 1)
+	exitC = make(chan struct{}, 1)
+	doneC = make(chan struct{}, 1)
 	closer.Bind(func() {
 		close(exitC)
 		<-doneC
@@ -76,7 +76,7 @@ func StartNuke() (*glfw.Window, *nk.Context) {
 	//log.Println("Initialised gui")
 
 	//End Nuklear
-	return win, ctx
+	return win, ctx, exitC, doneC
 }
 
 func LeftCol(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2, pane3 func()) {
@@ -145,7 +145,7 @@ func LoadImageData(data []uint8, x, y int) nk.Image {
 //3 pane layout - two small panes on the top, a large box below for displaying the contents of emails
 //
 //You provide the contents of panes 1, 2, and 3 as callback functions that take no args and return no values
-func ClassicEmail3Pane(win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2, pane3 func(ctx *nk.Context)) {
+func ClassicEmail3Pane(title string, win *glfw.Window, ctx *nk.Context, state interface{}, pane1, pane2, pane3 func(ctx *nk.Context)) {
 	////log.Println("Redraw")
 	maxVertexBuffer := 512 * 1024
 	maxElementBuffer := 128 * 1024
@@ -154,36 +154,29 @@ func ClassicEmail3Pane(win *glfw.Window, ctx *nk.Context, state interface{}, pan
 
 	// Layout
 	bounds := nk.NkRect(50, 50, 230, 250)
-	update := nk.NkBegin(ctx, "GitRemind", bounds,
+	update := nk.NkBegin(ctx, title, bounds,
 		nk.WindowBorder|nk.WindowMovable|nk.WindowScalable|nk.WindowMinimizable|nk.WindowTitle)
-	nk.NkWindowSetPosition(ctx, "GitRemind", nk.NkVec2(0, 0))
-	nk.NkWindowSetSize(ctx, "GitRemind", nk.NkVec2(float32(winWidth), float32(winHeight)))
+	nk.NkWindowSetPosition(ctx, title, nk.NkVec2(0, 0))
+	nk.NkWindowSetSize(ctx, title, nk.NkVec2(float32(winWidth), float32(winHeight)))
 
 	if update > 0 {
-		var atlas *nk.FontAtlas
-		atlas = nk.NewFontAtlas()
-		nk.NkFontStashBegin(&atlas)
-		/*data, err := ioutil.ReadFile("FreeSans.ttf")
-		if err != nil {
-			panic("Could not find file")
-		}*/
-
-		fontSmall := nk.NkFontAtlasAddFromBytes(atlas, goregular.TTF, 16, nil)
-		// sansFont := nk.NkFontAtlasAddDefault(atlas, 16, nil)
-		nk.NkFontStashEnd()
+		if fontSmall == nil {
+			panic("Font failure")
+		}
 		nk.NkStyleSetFont(ctx, fontSmall.Handle())
 		ButtonBox(ctx, pane1, pane2)
 		pane3(ctx)
+
 	}
 	nk.NkEnd(ctx)
 
 	// Render
-	bg := make([]float32, 4)
+	//bg := make([]float32, 4)
 	//nk.NkColorFv(bg, state.bgColor)
 	width, height := win.GetSize()
 	gl.Viewport(0, 0, int32(width), int32(height))
-	gl.Clear(gl.COLOR_BUFFER_BIT)
-	gl.ClearColor(bg[0], bg[1], bg[2], bg[3])
+	//gl.Clear(gl.COLOR_BUFFER_BIT)
+	//gl.ClearColor(bg[0], bg[1], bg[2], bg[3])
 	nk.NkPlatformRender(nk.AntiAliasingOn, maxVertexBuffer, maxElementBuffer)
 	win.SwapBuffers()
 }
