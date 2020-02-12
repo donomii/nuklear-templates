@@ -12,7 +12,7 @@ import (
 
 	"github.com/donomii/glim"
 
-	//"log"
+	"log"
 	"os"
 
 	"github.com/go-gl/gl/v3.2-core/gl"
@@ -98,7 +98,7 @@ func NewGarbageTexture(img image.Image, wrapR, wrapS int32) (*Texture, error) {
 }
 
 func RawTexture(data []byte, wrapR, wrapS int32, texture *Texture) (*Texture, error) {
-	//log.Println("Raw texture")
+	log.Println("Start Raw texture")
 	var handle uint32
 
 	target := uint32(gl.TEXTURE_2D)
@@ -108,7 +108,7 @@ func RawTexture(data []byte, wrapR, wrapS int32, texture *Texture) (*Texture, er
 	height := wrapS
 	pixType := uint32(gl.UNSIGNED_BYTE)
 	dataPtr := gl.Ptr(data)
-
+	log.Println("Generate  textures")
 	if texture == nil {
 		gl.GenTextures(1, &handle)
 		texture = &Texture{
@@ -119,9 +119,11 @@ func RawTexture(data []byte, wrapR, wrapS int32, texture *Texture) (*Texture, er
 		handle = texture.Handle
 	}
 
+	log.Println("Bind textures")
 	texture.Bind(gl.TEXTURE0)
 	defer texture.UnBind()
 
+	log.Println("Set texture parameters")
 	// set the texture wrapping/filtering options (applies to current bound texture obj)
 	// TODO-cs
 	gl.TexParameteri(texture.target, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE)
@@ -130,9 +132,11 @@ func RawTexture(data []byte, wrapR, wrapS int32, texture *Texture) (*Texture, er
 	gl.TexParameteri(texture.target, gl.TEXTURE_MIN_FILTER, gl.LINEAR) // minification filter
 	gl.TexParameteri(texture.target, gl.TEXTURE_MAG_FILTER, gl.LINEAR) // magnification filter
 
+	log.Println("Upload texture")
 	gl.TexImage2D(target, 0, internalFmt, width, height, 0, format, pixType, dataPtr)
 	dataPtr = nil
 
+	log.Println("Generate mipmaps")
 	gl.GenerateMipmap(texture.Handle)
 	//log.Println("Finished texture")
 	return texture, nil
